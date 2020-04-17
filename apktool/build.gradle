@@ -1,0 +1,26 @@
+apply plugin: 'java'
+
+sourceSets {
+    main {
+        java {
+            srcDirs 'java'
+        }
+        resources {
+            srcDir 'resources'
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+}
+
+
+task packChannel(type: JavaExec) {
+    main =  "com.apkpack.Pack"
+    classpath = sourceSets.main.runtimeClasspath
+}
+
+packChannel.dependsOn(":GeneralParent:copyApkToDir")
+packChannel.dependsOn(":SchoolMaster:copyApkToDir")
+packChannel.dependsOn(":Teacher:copyApkToDir")

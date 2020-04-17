@@ -1,13 +1,15 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
 buildscript {
+    apply from: './versions.gradle'
     repositories {
         google()
         jcenter()
-        
+        maven { url "https://jitpack.io" }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.5.3'
+        classpath "com.meituan.android.walle:plugin:$depv.plugin_walle"
+        classpath "com.android.tools.build:gradle:$depv.plugin_android_gradle"
         
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
@@ -16,12 +18,129 @@ buildscript {
 
 allprojects {
     repositories {
+        flatDir {
+            dirs 'libs'
+            dirs getRootProject().file('libs')
+        }
         google()
         jcenter()
-        
+
     }
 }
 
-task clean(type: Delete) {
-    delete rootProject.buildDir
+subprojects {
+    afterEvaluate {
+        String projectName = it.name
+        if (it.hasProperty('android')) {
+            //使用配置文件进行设置相关参数
+            File propFile = file('config.properties')
+            if (propFile.exists()) {
+                Properties props = new Properties()
+                props.load(new InputStreamReader(new FileInputStream(propFile), "utf-8"))
+                android {
+                    signingConfigs {
+                        release {
+                        }
+                    }
+                    defaultConfig {
+                        minSdkVersion buildv.min_sdk
+                        targetSdkVersion buildv.target_sdk
+                        multiDexEnabled true
+                        ndk {
+                            //选择要添加的对应cpu类型的.so库。
+                            abiFilters 'armeabi'
+                        }
+                    }
+                    if (projectName.equals("animation")) {
+                        android.defaultConfig.versionCode = Integer.parseInt(props["VERSION_CODE"])
+                        buildTypes {
+                            release { //正式版本
+                                versionNameSuffix props["VERSION_NAME"] + props['VERSION_NAME_CODE']
+                                buildConfigField "boolean", "LOG_DEBUG", props['RELEASE_LOG_DEBUG']
+                                minifyEnabled true
+                                shrinkResources true
+                                zipAlignEnabled true
+                                jniDebuggable false
+                                renderscriptDebuggable false
+                                debuggable false
+                                proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+                                multiDexKeepProguard file('multidex-config.pro')
+                            }
+                            debug {//调试开发版本
+                                versionNameSuffix props["DUG_VERSION_NAME"] + props['VERSION_NAME_CODE']
+                                buildConfigField "boolean", "LOG_DEBUG", props['DEBUG_LOG']
+                                minifyEnabled false
+                                shrinkResources false
+                                zipAlignEnabled true
+                                jniDebuggable false
+                                renderscriptDebuggable false
+                                debuggable true
+                                proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+                                multiDexKeepProguard file('multidex-config.pro')
+                            }
+                            beta { //测试版本
+                                versionNameSuffix props["Test_VERSION_NAME"] + props['VERSION_NAME_CODE']
+                                buildConfigField "boolean", "LOG_DEBUG", props['DEBUG_LOG']
+                                minifyEnabled false
+                                shrinkResources false
+                                zipAlignEnabled true
+                                jniDebuggable false
+                                renderscriptDebuggable false
+                                debuggable true
+                                proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+                                multiDexKeepProguard file('multidex-config.pro')
+                                matchingFallbacks = ['release', 'debug']
+                            }
+                        }
+
+                        //签名
+                        if (projectName.equals("animation")) {
+                            //家长端签名
+                            if (props.containsKey('STORE_FILE') && props.containsKey('STORE_PASSWORD') &&
+                                    props.containsKey('KEY_ALIAS') && props.containsKey('KEY_PASSWORD')) {
+                                android.signingConfigs.release.storeFile = file(props['STORE_FILE'])
+                                android.signingConfigs.release.storePassword = props['STORE_PASSWORD']
+                                android.signingConfigs.release.keyAlias = props['KEY_ALIAS']
+                                android.signingConfigs.release.keyPassword = props['KEY_PASSWORD']
+                            } else {
+                                buildTypes.release.signingConfig = null
+                            }
+                        }
+                        android.buildTypes.release.signingConfig = android.signingConfigs.release
+                        android.buildTypes.debug.signingConfig = android.signingConfigs.release
+                        android.buildTypes.beta.signingConfig = android.signingConfigs.release
+
+                        android.applicationVariants.all { variant ->
+                            if (variant.buildType.name.equals("release")) {
+                                variant.outputs.each { output ->
+                                    if (output.outputFile != null && output.outputFile.name.endsWith('.apk')) {
+                                        def tempTask1 = project.tasks.create("copyApkToDir", Copy)
+                                        tempTask1.description "Copies release apk to custom directory"
+                                        tempTask1.from(output.outputFile)
+                                        tempTask1.into("../apktool/apk/" + project.name)
+                                        println "Done......................."
+                                        tempTask1.dependsOn variant.assemble
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        buildTypes.release.signingConfig = null
+                    }
+                    compileSdkVersion buildv.compile_sdk
+                    buildToolsVersion buildv.build_tools
+                    useLibrary 'org.apache.http.legacy'
+                    dexOptions {
+                        javaMaxHeapSize "6g"
+                    }
+
+                    lintOptions {
+                        abortOnError false
+                    }
+                }
+            }
+
+        }
+    }
 }
+

@@ -1,2 +1,2 @@
-include ':app'
+include ':animation',':apktool'
 rootProject.name='Animation'

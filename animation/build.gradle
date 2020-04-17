@@ -1,0 +1,45 @@
+apply plugin: 'com.android.application'
+
+android {
+    dexOptions {
+        javaMaxHeapSize "6g"
+    }
+    File propFile = file('../config.properties')
+    if(propFile.exists()){
+        Properties props = new Properties();
+        props.load(new InputStreamReader(new FileInputStream(propFile),"utf-8"))
+        defaultConfig {
+            versionName 'P'
+            multiDexEnabled true
+            applicationId "com.wuqiqi.animation"
+            resValue "string", "app_name", props["APP_NAME"]
+        }
+        buildTypes {
+            beta{
+                resValue "string", "app_name", props["TEST_APP_NAME"]
+            }
+            debug {
+                resValue "string", "app_name", props["DEBUG_APP_NAME"]
+            }
+        }
+    }
+    packagingOptions {
+        exclude 'META-INF/DEPENDENCIES'
+        exclude 'META-INF/NOTICE'
+        exclude 'META-INF/LICENSE'
+    }
+    lintOptions {
+        checkReleaseBuilds false
+        abortOnError false
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_7
+        targetCompatibility JavaVersion.VERSION_1_7
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation "androidx.appcompat:appcompat:$depv.appcompat"
+    implementation "androidx.constraintlayout:constraintlayout:$depv.constraintlayout"
+}
