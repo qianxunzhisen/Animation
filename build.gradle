@@ -1,6 +1,7 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
 buildscript {
+    ext.kotlin_version = '1.3.72'
     apply from: './versions.gradle'
     repositories {
         google()
@@ -10,7 +11,8 @@ buildscript {
     dependencies {
         classpath "com.meituan.android.walle:plugin:$depv.plugin_walle"
         classpath "com.android.tools.build:gradle:$depv.plugin_android_gradle"
-        
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
@@ -27,6 +29,9 @@ allprojects {
 
     }
 }
+
+
+
 
 subprojects {
     afterEvaluate {
@@ -111,17 +116,17 @@ subprojects {
                         android.buildTypes.beta.signingConfig = android.signingConfigs.release
 
                         android.applicationVariants.all { variant ->
-                            if (variant.buildType.name.equals("release")) {
-                                variant.outputs.each { output ->
-                                    if (output.outputFile != null && output.outputFile.name.endsWith('.apk')) {
-                                        def tempTask1 = project.tasks.create("copyApkToDir", Copy)
+                           // if (variant.buildType.name=="release") {
+                                variant.outputs.all { output ->
+                                    //if (output.outputFile != null && output.outputFile.name.endsWith('.apk')) {
+                                     /*   def tempTask1 = project.tasks.create("copyApkToDir", Copy)
                                         tempTask1.description "Copies release apk to custom directory"
                                         tempTask1.from(output.outputFile)
                                         tempTask1.into("../apktool/apk/" + project.name)
                                         println "Done......................."
-                                        tempTask1.dependsOn variant.assemble
-                                    }
-                                }
+                                        tempTask1.dependsOn variant.assemble*/
+                                    //}
+                               // }
                             }
                         }
                     } else {
@@ -142,5 +147,6 @@ subprojects {
 
         }
     }
+
 }
 

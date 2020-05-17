@@ -1,4 +1,6 @@
 apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
 
 android {
     dexOptions {
@@ -23,23 +25,41 @@ android {
             }
         }
     }
-    packagingOptions {
-        exclude 'META-INF/DEPENDENCIES'
-        exclude 'META-INF/NOTICE'
-        exclude 'META-INF/LICENSE'
+    kotlinOptions{
+        jvmTarget = JavaVersion.VERSION_1_8
     }
-    lintOptions {
-        checkReleaseBuilds false
-        abortOnError false
-    }
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_7
-        targetCompatibility JavaVersion.VERSION_1_7
+    dataBinding {
+        enabled = true
     }
 }
+
+
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation "androidx.appcompat:appcompat:$depv.appcompat"
     implementation "androidx.constraintlayout:constraintlayout:$depv.constraintlayout"
+    implementation "com.meituan.android.walle:library:$depv.plugin_walle"
+    //AutoDispose解决RxJava内存泄漏
+    implementation 'com.uber.autodispose:autodispose:0.7.0'
+    implementation 'com.uber.autodispose:autodispose-android:0.7.0'
+    implementation 'com.uber.autodispose:autodispose-android-archcomponents:0.7.0'
+    //ktx
+    implementation 'androidx.core:core-ktx:+'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    //material design
+    implementation 'com.google.android.material:material:1.1.0-alpha09'
+    //Material-dialogs
+    implementation 'com.afollestad.material-dialogs:core:3.3.0'
+    //okhttp3
+    implementation 'com.squareup.okhttp3:okhttp:3.10.0'
+    implementation "com.squareup.okhttp3:logging-interceptor:3.10.0"
+    //retrofit2
+    implementation 'com.squareup.retrofit2:retrofit:2.4.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.4.0'
+    implementation 'com.squareup.retrofit2:adapter-rxjava2:2.4.0'
+
+}
+repositories {
+    mavenCentral()
 }

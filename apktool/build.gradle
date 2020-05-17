@@ -21,6 +21,4 @@ task packChannel(type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
 }
 
-packChannel.dependsOn(":GeneralParent:copyApkToDir")
-packChannel.dependsOn(":SchoolMaster:copyApkToDir")
-packChannel.dependsOn(":Teacher:copyApkToDir")
+packChannel.dependsOn(":animation:copyApkToDir")
